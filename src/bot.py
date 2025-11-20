@@ -15,5 +15,12 @@ class MonitorBot(slixmpp.ClientXMPP):
         await self.get_roster()
 
     def message(self, msg):
-        if msg['type'] in ('chat', 'normal'):
+        body = msg['body'].strip().lower()
+        if body == "!pause":
+            self.send_presence(pshow='away')  # zmiana statusu na away
+            msg.reply("Monitoring został wstrzymany.").send()
+        elif body == "!resume":
+            self.send_presence(pshow='chat')  # zmiana statusu na active
+            msg.reply("Monitoring został wznowiony.").send()
+        else:
             msg.reply(f"Otrzymałem: {msg['body']}").send()
