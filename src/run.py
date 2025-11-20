@@ -1,3 +1,4 @@
+import os
 import argparse
 import logging
 
@@ -8,10 +9,10 @@ from src.bot import EchoBot
 
 def run() -> None:
     load_dotenv()
-    jid = get_required_env("XMPP_JID")
-    password = get_required_env("XMPP_PASSWORD")
-    host = get_required_env("XMPP_HOST")
-    port = int(get_required_env("XMPP_PORT"))
+    jid = get_required_env("BOT_JID")
+    password = get_required_env("BOT_PASSWORD")
+    host = os.environ.get("XMPP_HOST", "localhost")
+    port = int(os.environ.get("XMPP_PORT", 5222))
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="Debug mode")
     args = parser.parse_args()
