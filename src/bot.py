@@ -2,8 +2,8 @@ import slixmpp
 import ssl
 
 
-class EchoBot(slixmpp.ClientXMPP):
-    def __init__(self, jid, password):
+class MonitorBot(slixmpp.ClientXMPP):
+    def __init__(self, jid: str, password: str):
         super().__init__(jid, password)
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("message", self.message)

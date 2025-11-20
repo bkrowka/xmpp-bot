@@ -4,7 +4,7 @@ import logging
 
 from dotenv import load_dotenv
 from src.utils import get_required_env
-from src.bot import EchoBot
+from src.bot import MonitorBot
 
 
 def run() -> None:
@@ -18,7 +18,7 @@ def run() -> None:
     args = parser.parse_args()
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(levelname)-8s %(message)s')
-    bot = EchoBot(jid, password)
+    bot = MonitorBot(jid, password)
     bot.connect((host, port))
     try:
         bot.process(forever=True)
