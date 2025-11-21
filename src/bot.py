@@ -11,6 +11,7 @@ class MonitorBot(slixmpp.ClientXMPP):
         self.agent_jids = agent_jids
         self.last_seen = {jid: None for jid in agent_jids}
         self.last_state = {jid: 'up' for jid in agent_jids}
+        self.monitoring = True
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("presence", self.presence_handler)
         self.add_event_handler("message", self.message)
@@ -44,6 +45,8 @@ class MonitorBot(slixmpp.ClientXMPP):
 
     def alert_admin(self, text: str):
         logging.warning(text)
+        if not self.monitoring:
+            return
         for admin_jid in self.admin_jids:
             self.send_message(
                 mto=admin_jid,
@@ -55,9 +58,11 @@ class MonitorBot(slixmpp.ClientXMPP):
         body = msg['body'].strip().lower()
         if body == "!pause":
             self.send_presence(pshow='away')
+            self.monitoring = False
             msg.reply("Monitoring został wstrzymany.").send()
         elif body == "!resume":
             self.send_presence(pshow=None)
+            self.monitoring = True
             msg.reply("Monitoring został wznowiony.").send()
         else:
-            msg.reply(f"Otrzymałem: {msg['body']}").send()
+            msg.reply(f"Nie rozumiem...").send()
