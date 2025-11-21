@@ -22,10 +22,10 @@ def run() -> None:
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(levelname)-8s %(message)s')
     admin_jids = [admin["jid"] for admin in config["admins"]]
-    agent_jids = []
+    agent_map = {}
     agents = []
     for svc in config["services"]:
-        agent_jids.append(svc["jid"])
+        agent_map[svc["jid"]] = svc["name"]
         agent = ServiceAgent(
             jid=svc['jid'],
             password=svc['password'],
@@ -33,7 +33,7 @@ def run() -> None:
         )
         agent.connect((host, port))
         agents.append(agent)
-    bot = MonitorBot(jid, password, admin_jids, agent_jids)
+    bot = MonitorBot(jid, password, admin_jids, agent_map)
     bot.connect((host, port))
     try:
         asyncio.get_event_loop().run_forever()
@@ -41,7 +41,6 @@ def run() -> None:
         bot.disconnect()
         for agent in agents:
             agent.disconnect()
-
 
 
 if __name__ == "__main__":

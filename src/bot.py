@@ -5,12 +5,13 @@ import asyncio
 
 
 class MonitorBot(slixmpp.ClientXMPP):
-    def __init__(self, jid: str, password: str, admin_jids: list[str], agent_jids: list[str]):
+    def __init__(self, jid: str, password: str, admin_jids: list[str], agent_map: dict[str, str]):
         super().__init__(jid, password)
         self.admin_jids = admin_jids
-        self.agent_jids = agent_jids
-        self.last_seen = {jid: None for jid in agent_jids}
-        self.last_state = {jid: 'up' for jid in agent_jids}
+        self.agent_map = agent_map
+        self.agent_jids = list(agent_map.keys())
+        self.last_seen = {jid: None for jid in self.agent_jids}
+        self.last_state = {jid: 'up' for jid in self.agent_jids}
         self.monitoring = True
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("presence", self.presence_handler)
@@ -28,17 +29,18 @@ class MonitorBot(slixmpp.ClientXMPP):
         entity = str(presence['from'].bare)
         if entity not in self.agent_jids:
             return
+        service = self.agent_map[entity]
         self.last_seen[entity] = asyncio.get_event_loop().time()
         state = self.last_state.get(entity, 'up')
         if presence['type'] == 'unavailable':
             if state != 'down':
                 self.last_state[entity] = 'down'
-                self.alert_admin(f"[ALERT] Agent {entity} jest NIEDOSTĘPNY (usługa padła)")
+                self.alert_admin(f"[ALERT] Usługa **{service}** jest niedostępna.")
         else:
             if state != 'up':
                 self.last_state[entity] = 'up'
-                status = presence.get('status', '')
-                self.alert_admin(f"[RECOVERY] Agent {entity} jest ponownie dostępny: {status}")
+                # status = presence.get('status', '')
+                self.alert_admin(f"[ALERT] Usługa **{service}** działa ponownie.")
             else:
                 status = presence.get('status', '')
                 logging.info(f"Presence od {entity}: {status}")
@@ -68,10 +70,10 @@ class MonitorBot(slixmpp.ClientXMPP):
             self.monitoring = True
             msg.reply("Monitoring został wznowiony.").send()
         elif body == "!status":
-            lines = []
-            for agent_jid in self.agent_jids:
-                state = self.last_state.get(agent_jid, 'unknown')
-                lines.append(f"{agent_jid}: {state.upper()}")
+            lines = [
+                f"{self.agent_map[jid]}: {self.last_state[jid].upper()}"
+                for jid in self.agent_jids
+            ]
             msg.reply("Status usług:\n" + "\n".join(lines)).send()
         else:
-            msg.reply(f"Nie rozumiem...").send()
+            msg.reply(f"Nie rozumiem polecenia.").send()
