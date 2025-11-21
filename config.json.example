@@ -1,0 +1,14 @@
+{
+  "admins": [
+    {
+      "jid": "admin@example.com"
+    }
+  ],
+  "services": [
+    {
+      "name": "service",
+      "jid": "service@example.com",
+      "password": "password"
+    }
+  ]
+}
