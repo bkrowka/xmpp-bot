@@ -55,6 +55,9 @@ class MonitorBot(slixmpp.ClientXMPP):
             )
 
     def message(self, msg):
+        sender = str(msg['from'].bare)
+        if sender not in self.admin_jids:
+            return
         body = msg['body'].strip().lower()
         if body == "!pause":
             self.send_presence(pshow='away')
