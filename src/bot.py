@@ -64,5 +64,11 @@ class MonitorBot(slixmpp.ClientXMPP):
             self.send_presence(pshow=None)
             self.monitoring = True
             msg.reply("Monitoring został wznowiony.").send()
+        elif body == "!status":
+            lines = []
+            for agent_jid in self.agent_jids:
+                state = self.last_state.get(agent_jid, 'unknown')
+                lines.append(f"{agent_jid}: {state.upper()}")
+            msg.reply("Status usług:\n" + "\n".join(lines)).send()
         else:
             msg.reply(f"Nie rozumiem...").send()
