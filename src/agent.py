@@ -41,7 +41,7 @@ class ServiceAgent(slixmpp.ClientXMPP):
                 if ok:
                     self.send_presence(pshow=None, pstatus=f"{self.service_name} OK")
                 else:
-                    self.send_presence(pshow="dnd", pstatus=f"{self.service_name} DOWN")
+                    self.send_presence(pshow="unavailable", pstatus=f"{self.service_name} DOWN")
                 log.info("Agent %s: %s", self.service_name, state)
                 self.last_state = state
             await asyncio.sleep(5)

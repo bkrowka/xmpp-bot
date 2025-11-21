@@ -10,6 +10,7 @@ class MonitorBot(slixmpp.ClientXMPP):
         self.admin_jids = admin_jids
         self.agent_jids = agent_jids
         self.last_seen = {jid: None for jid in agent_jids}
+        self.last_state = {jid: 'up' for jid in agent_jids}
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("presence", self.presence_handler)
         self.add_event_handler("message", self.message)
@@ -23,16 +24,23 @@ class MonitorBot(slixmpp.ClientXMPP):
             self.send_presence_subscription(pto=agent_jid)
 
     def presence_handler(self, presence):
-        print("aaa")
         entity = str(presence['from'].bare)
         if entity not in self.agent_jids:
             return
         self.last_seen[entity] = asyncio.get_event_loop().time()
+        state = self.last_state.get(entity, 'up')
         if presence['type'] == 'unavailable':
-            self.alert_admin(f"[ALERT] Agent {entity} zgłosił: UNAVAILABLE (prawdopodobnie usługa padła)")
+            if state != 'down':
+                self.last_state[entity] = 'down'
+                self.alert_admin(f"[ALERT] Agent {entity} jest NIEDOSTĘPNY (usługa padła)")
         else:
-            status = presence.get('status', '')
-            logging.info(f"Presence od {entity}: {status}")
+            if state != 'up':
+                self.last_state[entity] = 'up'
+                status = presence.get('status', '')
+                self.alert_admin(f"[RECOVERY] Agent {entity} jest ponownie dostępny: {status}")
+            else:
+                status = presence.get('status', '')
+                logging.info(f"Presence od {entity}: {status}")
 
     def alert_admin(self, text: str):
         logging.warning(text)
